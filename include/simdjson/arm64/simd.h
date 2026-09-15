@@ -120,9 +120,18 @@ namespace {
   // but 0x8000000000000000 needs a 0x80 byte, which a comparison mask cannot
   // produce; and an all-ones narrowing is a quiet NaN, which compares unordered
   // (so != 0.0 is true, as wanted) and raises no invalid-operation exception.
+  //
+  // A third is not harmless: if flush-to-zero is enabled, a denormal bit
+  // pattern compares equal to 0.0. That can happen when only low-order bytes of
+  // the mask are set. SIMDJSON_SAFE_ZERO_CHECK uses an integer across-lane
+  // reduction instead.
   simdjson_inline bool any_mask_byte_set(const uint8x16_t mask) {
+#if SIMDJSON_SAFE_ZERO_CHECK
+    return vmaxvq_u32(vreinterpretq_u32_u8(mask)) != 0;
+#else
     const uint8x8_t narrowed = vshrn_n_u16(vreinterpretq_u16_u8(mask), 4);
     return vdupd_lane_f64(vreinterpret_f64_u8(narrowed), 0) != 0.0;
+#endif
   }
 
   // SIMD byte mask type (returned by things like eq and gt)

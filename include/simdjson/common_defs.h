@@ -387,6 +387,15 @@ namespace std {
 #define SIMDJSON_AVX512_ALLOWED 1
 #endif
 
+// Some kernels test whether a SIMD register is all zero by reinterpreting
+// the bits as a floating-point value and comparing with 0.0. That is
+// incorrect when flush-to-zero is enabled, because a denormal bit pattern
+// then compares equal to zero. Set this to 1 to use an integer reduction
+// instead. Default is 0 (fast floating-point compare).
+#ifndef SIMDJSON_SAFE_ZERO_CHECK
+#define SIMDJSON_SAFE_ZERO_CHECK 0
+#endif
+
 
 #ifndef __has_cpp_attribute
 #define simdjson_lifetime_bound

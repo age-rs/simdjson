@@ -352,6 +352,14 @@ if(SIMDJSON_MINUS_ZERO_AS_FLOAT)
   simdjson_add_props(target_compile_definitions PRIVATE SIMDJSON_MINUS_ZERO_AS_FLOAT=1)
 endif(SIMDJSON_MINUS_ZERO_AS_FLOAT)
 
+option(SIMDJSON_SAFE_ZERO_CHECK
+    "Test SIMD registers for all-zero with an integer reduction instead of a floating-point compare against 0.0 (safe when flush-to-zero is set)"
+    OFF)
+if(SIMDJSON_SAFE_ZERO_CHECK)
+  message(STATUS "simdjson safe SIMD zero-check is enabled.")
+  simdjson_add_props(target_compile_definitions PUBLIC SIMDJSON_SAFE_ZERO_CHECK=1)
+endif()
+
 option(SIMDJSON_ENABLE_NAN_INF "Allow parsing of NaN and Infinity JSON values" OFF)
 if(SIMDJSON_ENABLE_NAN_INF)
   message(STATUS "simdjson NaN and Infinity parsing is enabled.")

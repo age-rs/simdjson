@@ -732,11 +732,18 @@ static_assert(SIMDJSON_PADDING > 63,
 // across-lane reduction and no SIMD-to-general-purpose-register transfer.
 //
 // fcmp treats -0.0 as zero, but 0x8000000000000000 would need a 0x80 byte, which
-// a comparison mask cannot produce, so that hazard is unreachable.
+// a comparison mask cannot produce, so that hazard is unreachable. Comparing
+// with 0.0 is still unsafe when flush-to-zero is enabled: a denormal then
+// compares as zero. SIMDJSON_SAFE_ZERO_CHECK uses an integer reduction of
+// the raw bytes instead (no vtst needed).
 simdjson_really_inline bool neon_all_bytes_zero(uint8x16_t diff) noexcept {
+#if SIMDJSON_SAFE_ZERO_CHECK
+    return vmaxvq_u32(vreinterpretq_u32_u8(diff)) == 0;
+#else
     const uint8x8_t narrowed =
         vshrn_n_u16(vreinterpretq_u16_u8(vtstq_u8(diff, diff)), 4);
     return vdupd_lane_f64(vreinterpret_f64_u8(narrowed), 0) == 0.0;
+#endif
 }
 #endif
 

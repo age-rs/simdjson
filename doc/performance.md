@@ -14,6 +14,7 @@ testing and get the best performance.
 * [Number parsing](#number-parsing)
 * [Visual Studio](#visual-studio)
 * [Power Usage and Downclocking](#power-usage-and-downclocking)
+* [SIMD zero tests](#simd-zero-tests)
 * [Free Padding](#free-padding)
 
 
@@ -191,6 +192,16 @@ The simdjson library does not generally make use of heavy 256-bit instructions. 
 the macro `SIMDJSON_AVX512_ALLOWED` to `0` in C++ prior to importing the headers.
 
 You may still be worried about which SIMD instruction set is used by simdjson.  Thankfully,  [you can always determine and change which architecture-specific implementation is used](implementation-selection.md) by simdjson. Thus even if your CPU supports AVX2, you do not need to use AVX2. You are in control.
+
+SIMD zero tests
+----------------
+
+Some simdjson kernels decide whether a SIMD register is all zero by reinterpreting
+the bits as a floating-point value and comparing with `0.0`. That is incorrect if
+flush-to-zero is enabled, because a denormal bit pattern then compares as zero.
+Set `SIMDJSON_SAFE_ZERO_CHECK` to `1` (CMake: `-D SIMDJSON_SAFE_ZERO_CHECK=ON`)
+before including the headers to use an integer reduction instead. The option
+defaults to off.
 
 
 Free Padding
